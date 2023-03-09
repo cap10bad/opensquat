@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: boring-sec
+spec:
+  containers:
+    - image: freshdrops.azurecr.io/boring-sec:latest
+      name: boring-sec
+      imagePullPolicy: Always
+  restartPolicy: Always
+  nodeSelector:
+    job: geth
+  priorityClassName: low-priority
