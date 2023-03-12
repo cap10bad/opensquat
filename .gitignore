@@ -14,4 +14,5 @@ venv/
 *.json
 test*.py
 phishing.db
+domain-names*.txt
 .env

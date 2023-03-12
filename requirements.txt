@@ -14,3 +14,4 @@ beautifulsoup4
 discord
 python-dotenv
 dnspython==1.16.0
+packaging
