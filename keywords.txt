@@ -1,6 +1,1 @@
-#This is a comment
-google
-facebook
-amazon
-paypal
-microsoft
+azuki
