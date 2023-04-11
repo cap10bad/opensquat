@@ -3,11 +3,18 @@ import subprocess
 from string import whitespace
 import datetime
 import pymongo
-from pymongo import MongoClient
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
 
 uri = "***REMOVED***"
 
-client = MongoClient(uri)
+client = MongoClient(uri, server_api=ServerApi('1'))
+
+try:
+    client.admin.command('ping')
+    print("Pinged your deployment. You successfully connected to MongoDB!")
+except Exception as e:
+    print(e)
 
 db = client["boringsec_db"]
 collection = db["phrases"]
