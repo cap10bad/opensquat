@@ -2,11 +2,15 @@
 import subprocess
 from string import whitespace
 import datetime
-import pymongo
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
-uri = "mongodb+srv://boringsec:YXU2nkz4mdbwmt_dhv@cluster0.hmiqz4d.mongodb.net/boringsec_db?retryWrites=true&w=majority"
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+uri = os.getenv('MONGO_CONNECTION')
 
 client = MongoClient(uri, server_api=ServerApi('1'))
 

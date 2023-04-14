@@ -1,6 +1,7 @@
 from discord.ext import tasks
 import datetime
 import discord
+import pymongo
 
 import os
 from dotenv import load_dotenv
@@ -9,9 +10,27 @@ from string import whitespace
 
 load_dotenv()
 
+uri = os.getenv('MONGO_CONNECTION')
+
+client = pymongo.MongoClient(uri)
+
+db = client['boring_db']
+collection = db['phrases']
+
 class MyClient(discord.Client):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    async def get_data(self, query):
+    # Use regular expression to search for phrases containing the query string
+        regex_query = f".*{query}.*"
+        results = collection.find({"phrase": {"$regex": regex_query}})
+
+    # Create a list of the matching phrases
+        phrases = [result["phrase"] for result in results]
+
+    # Return the list of phrases as a single string separated by newlines
+        return "\n".join(phrases)
 
     async def setup_hook(self) -> None:
         # start the task to run in the background
@@ -39,6 +58,10 @@ class MyClient(discord.Client):
     async def before_my_task(self):
         await self.wait_until_ready()  # wait until the bot logs in
 
+    @commands.command()
+    async def start_task(self, ctx):
+        self.my_background_task.start() # triggered by command in client
+        await ctx.send('Task started!')
 
 client = MyClient(intents=discord.Intents.default())
 client.run(os.getenv('DISCORD_TOKEN'))
