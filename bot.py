@@ -1,4 +1,5 @@
 from discord.ext import tasks
+from discord.ext import commands
 import datetime
 import discord
 import pymongo
@@ -16,6 +17,9 @@ client = pymongo.MongoClient(uri)
 
 db = client['boring_db']
 collection = db['phrases']
+
+intents = discord.Intents.default()
+intents.message_content = True
 
 class MyClient(discord.Client):
     def __init__(self, *args, **kwargs):
@@ -59,9 +63,14 @@ class MyClient(discord.Client):
         await self.wait_until_ready()  # wait until the bot logs in
 
     @commands.command()
-    async def start_task(self, ctx):
+    async def start(self, ctx):
         self.my_background_task.start() # triggered by command in client
         await ctx.send('Task started!')
+
+    @commands.command()
+    async def add(self, ctx, phrase):
+        collection.insert_one({"phrase": phrase})
+        await ctx.send(f'"{phrase}" added to the collection')
 
 client = MyClient(intents=discord.Intents.default())
 client.run(os.getenv('DISCORD_TOKEN'))
