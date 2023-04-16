@@ -18,9 +18,6 @@ client = pymongo.MongoClient(uri)
 db = client['boring_db']
 collection = db['phrases']
 
-intents = discord.Intents.default()
-intents.message_content = True
-
 class MyClient(discord.Client):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -61,11 +58,6 @@ class MyClient(discord.Client):
     @my_background_task.before_loop
     async def before_my_task(self):
         await self.wait_until_ready()  # wait until the bot logs in
-
-    @commands.command()
-    async def start(self, ctx):
-        self.my_background_task.start() # triggered by command in client
-        await ctx.send('Task started!')
 
     @commands.command()
     async def add(self, ctx, phrase):
