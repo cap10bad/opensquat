@@ -63,6 +63,7 @@ class MyClient(discord.Client):
     async def add(self, ctx, phrase):
         collection.insert_one({"phrase": phrase})
         await ctx.send(f'"{phrase}" added to the collection')
+        print(f'"{phrase}" added to the collection')
 
 client = MyClient(intents=discord.Intents.default())
 client.run(os.getenv('DISCORD_TOKEN'))
