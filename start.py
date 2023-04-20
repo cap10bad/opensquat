@@ -58,7 +58,6 @@ for partnerline in partners:
     if partner and keywords:
         collection.insert_one({"partner": partner, "keywords": keywords})
 
-
 message = ''
 datestring = datetime.datetime.utcnow().strftime("%y-%m-%d")
 
