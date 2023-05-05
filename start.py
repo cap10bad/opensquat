@@ -3,6 +3,8 @@ from string import whitespace
 import datetime
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
+import requests
+import json 
 
 import os
 from dotenv import load_dotenv
@@ -34,14 +36,51 @@ for document in collection.find():
         k.write("\n".join(x.strip() for x in keywords))
 
     results = f'results.txt'
+
     cmd = f'python3 opensquat.py -o {results}'
     subprocess.call(cmd, shell=True)
 
     with open(results, "r") as f:
-        lines = f.readlines()
+        matches = f.readlines()
 
-    if (len(lines) > 0):
-        message = f'{message}❗**Suspicious links for the {partner} community**❗\n{"".join(lines)}\n'
+    if (len(matches) == 0):
+        continue
+
+    cmd = f'python3 opensquat.py -o {results} --portcheck'
+    subprocess.call(cmd, shell=True)
+
+    with open(results, "r") as f:
+        ports = f.readlines()
+
+    # matchesWithPorts = [x if x in ports else str(x).replace('\n', '') + ' (non-responsive)\n' for x in matches]
+
+    lines = []
+
+    for x in matches:
+        if x in ports:
+            domain = str(x).replace(os.linesep, '')
+        else:
+            domain = str(x).replace(os.linesep, '') + ' (non-responsive)'
+
+        x = str(x).replace(os.linesep, '')
+        
+        nameservers = ''
+        try:
+            data = requests.get(
+                        f"https://www.whoisxmlapi.com/whoisserver/DNSService?apiKey={os.getenv('WHO_IS_API_KEY')}&domainName={x}&type=_all&outputFormat=json"
+                    ).json()
+            records = data["DNSData"]["dnsRecords"]
+            nameservers = []
+            for record in records:
+                if record["dnsType"] == "NS":
+                    nameservers.append(record["target"])
+            nameservers = "\t".join(nameservers)
+        except Exception as e:
+            print(e)
+
+        lines.append(f"{domain}\t{nameservers}\n")
+
+    message = f'{message}❗**Suspicious links for the {partner} community**❗\n{"".join(lines)}\n'
 
 if (len(message) > 0):
     message = f'{message}For more information on what to do if your community has domains in this list, go here: https://discord.com/channels/933253328794689546/1073264004614594641/1073304829105016843'

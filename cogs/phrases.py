@@ -1,6 +1,7 @@
 from discord.ext import commands
 import os
 import pymongo
+import datetime
 
 uri = os.getenv('MONGO_CONNECTION')
 mongo = pymongo.MongoClient(uri)
@@ -11,14 +12,21 @@ collection = db['phrases']
 async def setup(bot):
     await bot.add_cog(Phrases(bot))
 
-
 class Phrases(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
 
+    async def cog_check(self, ctx):
+        required_roles = ["Othermods", "contributor"]
+        try:    
+            has_required_role = await commands.has_any_role(*required_roles).predicate(ctx)
+            return has_required_role
+        except:
+            await ctx.send("You don't have the required role to use this command.")
+    
     @commands.command()
-    async def get_phrases(self, ctx):
+    async def get(self, ctx):
         lines = ''
         for document in collection.find():
             lines = f'{lines}**{document["partner"]}**\n'
@@ -27,7 +35,7 @@ class Phrases(commands.Cog):
         await ctx.send(lines)
 
     @commands.command(pass_context=True)
-    async def add_phrase(self, ctx, *, message=""):
+    async def add(self, ctx, *, message=""):
         splits = message.split()
 
         if len(splits) != 2:
@@ -52,7 +60,7 @@ class Phrases(commands.Cog):
                                   {"$push": {"keywords": splits[1]}})
 
     @commands.command(pass_context=True)
-    async def remove_phrase(self, ctx, *, message=""):
+    async def remove(self, ctx, *, message=""):
         splits = message.split()
 
         if len(splits) != 2:
@@ -75,7 +83,6 @@ class Phrases(commands.Cog):
             await ctx.send(
                 f"No phrase *{splits[1]}* exists for partner *{splits[0]}*")
 
-
     @commands.command(pass_context=True)
     async def remove_partner(self, ctx, *, message=""):
         splits = message.split()
@@ -92,3 +99,15 @@ class Phrases(commands.Cog):
 
         collection.delete_one({"partner": splits[0]})
         await ctx.send(f"Removing partner *{splits[0]}*")
+
+        
+    @commands.command()
+    async def report(self, ctx):
+        datestring = datetime.datetime.utcnow().strftime("%y-%m-%d")
+        final = f'results-{datestring}.txt'
+
+        with open(final, "r") as f:
+            message = f.read()
+
+        if (len(message) > 0):
+            await ctx.send(message)
