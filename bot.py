@@ -4,6 +4,7 @@ import discord
 from discord.ext import tasks
 from discord.ext import commands
 from dotenv import load_dotenv
+from string_utils import split_string
 
 load_dotenv()
 
@@ -20,11 +21,13 @@ async def my_background_task():
 
     with open(final, "r") as f:
         message = f.read()
+    f.close()
 
     if (len(message) > 0):
         channelid = int(os.getenv('DISCORD_RESULTS_CHANNEL'))
         channel = bot.get_channel(channelid)
-        await channel.send(message)
+        for chunk in split_string(message):
+            await channel.send(chunk)
 
 
 @my_background_task.before_loop

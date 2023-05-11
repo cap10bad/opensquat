@@ -2,6 +2,7 @@ from discord.ext import commands
 import os
 import pymongo
 import datetime
+from string_utils import split_string
 
 uri = os.getenv('MONGO_CONNECTION')
 mongo = pymongo.MongoClient(uri)
@@ -18,7 +19,7 @@ class Phrases(commands.Cog):
         self.bot = bot
 
     async def cog_check(self, ctx):
-        required_roles = ["Othermods", "contributor"]
+        required_roles = ["Othermods", "Contributor"]
         try:    
             has_required_role = await commands.has_any_role(*required_roles).predicate(ctx)
             return has_required_role
@@ -108,6 +109,8 @@ class Phrases(commands.Cog):
 
         with open(final, "r") as f:
             message = f.read()
+        f.close()
 
         if (len(message) > 0):
-            await ctx.send(message)
+            for chunk in split_string(message):
+                await ctx.send(chunk)
